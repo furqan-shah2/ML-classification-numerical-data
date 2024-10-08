@@ -1,27 +1,22 @@
-Predicting EPL Full-Time Result using Random Forest
+Machine Learning: Predicting EPL Results using Bettings Odds
 ================
-Your Name
+Furqan Shah
+2024-10-08
 
-## Introduction
+# Introduction
 
-In this tutorial, I will demonstrate how to use betting odds data from
-various companies to predict the Full-Time Result (FTR) of English
-Premier League (EPL) matches. The possible outcomes are: - **H**: Home
-win - **D**: Draw - **A**: Away win
-
-This is a simplified example where the primary objective is to showcase
-how to implement a classification model using numerical data. Accuracy
-is not the main focus here. We do not take into account team effects,
-time effects, year effects, or any other additional contextual factors
-that could improve the model’s predictive performance.
-
-**The purpose** of this tutorial is to help you understand how the code
-works so you can adopt it and tailor it to fit your specific needs. You
-can apply this method to a wide range of research problems, such as
-classifying narratives into different themes or tones in accounting
-reports.
+This tutorial demonstrates machine learning classification using
+numerical data in the context of the English Premier League (EPL). We
+predict the full-time result (Home win, Draw, Away win) based on betting
+odds and compare their predictive power. The focus is on showing how to
+implement a classification model, not on achieving high accuracy. Team
+effects, time effects, and other contextual factors are not considered.
 
 ## Step 1: Load and Install Required Libraries
+
+In this first step, we ensure that the necessary libraries are
+installed. I recommend running this code as it will install any missing
+packages before proceeding with the tutorial.
 
 ``` r
 # Install necessary libraries if they aren't already installed
@@ -30,47 +25,41 @@ if (!require(caret)) install.packages("caret")
 if (!require(randomForest)) install.packages("randomForest")
 if (!require(e1071)) install.packages("e1071")  # e1071 is required by caret
 
-# Load the libraries (make sure you have installed these packages before loading libraries)
+# Load the libraries 
 library(dplyr)
 library(caret)
 library(randomForest)
 ```
 
-In this first step, we ensure that the necessary libraries are
-installed. I recommend running this code as it will install any missing
-packages before proceeding with the tutorial. We select only following
-variables for simplicity:
-
-**FTHG** = Full Time Home Team Goals  
-**FTAG** = Full Time Away Team Goals  
-**FTR** = Full Time Result (H=Home Win, D=Draw, A=Away Win) OR (H=Home
-Win, NH= Not a Home Win). Therefore, I create a new FTR variable based
-on FTHG and FTAG variables  
-**B365H**\* = Bet365 home win odds  
-**B365D** = Bet365 draw odds  
-**B365A** = Bet365 away win odds  
-**IWH** = Interwetten home win odds  
-**IWD** = Interwetten draw odds  
-**IWA** = Interwetten away win odds  
-**LBH** = Ladbrokes home win odds  
-**LBD** = Ladbrokes draw odds  
-**LBA** = Ladbrokes away win odds  
-**WHH** = William Hill home win odds  
-**WHD** = William Hill draw odds  
-**WHA** = William Hill away win odds
-
-Therefore, essentially we are using four companies betting odds to
-predict outcome (FTR).
-
 ## Step 2: Prepare the Data
 
-Here, we load the dataset and prepare it for analysis. I re-coded the
-Full-Time Result (FTR) to represent H (Home win), D (Draw), or A (Away
-win), using FTHG and GTAG variables. We also select the variables
-representing betting odds from various companies.
+Now, we load the dataset and select the relevant variables (betting odds
+and final game result) listed as follows:
+
+- **FTHG**: *Full Time Home Team Goals*  
+- **FTAG**: *Full Time Away Team Goals*  
+- **FTR**: *Full Time Result (H=Home Win, NH=Not a Home Win)*  
+- **B365H**: *Bet365 home win odds*  
+- **B365D**: *Bet365 draw odds*  
+- **B365A**: *Bet365 away win odds*  
+- **IWH**: *Interwetten home win odds*  
+- **IWD**: *Interwetten draw odds*  
+- **IWA**: *Interwetten away win odds*  
+- **LBH**: *Ladbrokes home win odds*  
+- **LBD**: *Ladbrokes draw odds*  
+- **LBA**: *Ladbrokes away win odds*  
+- **WHH**: *William Hill home win odds*  
+- **WHD**: *William Hill draw odds*  
+- **WHA**: *William Hill away win odds*
+
+Note that the **FTR** variable originally has two levels (*Home Win* or
+*Not Home Win*). We recode it into three levels: *Home Win*, *Draw*, and
+*Away Win*, to align with the odds data from the four companies: Bet365,
+Ladbrokes, William Hill, and Interwetten, each offering odds for these
+three outcomes.
 
 ``` r
-# Load EPL results and betting odds data from a CSV file (I downloaded this data from kaggle.com)
+# Load EPL results and betting odds data from a CSV file (available on the github repository of this page)
 epl_data <- read.csv("final_dataset_with_odds.csv") %>%
   select(FTHG, FTAG, FTR, B365H, B365D, B365A, IWH, IWD, IWA, LBH, LBD, LBA, WHH, WHD, WHA)
 
@@ -116,7 +105,8 @@ summary(epl_data)
 
 In this step, we split the dataset into two parts. We use 80% of the
 data to train our model and 20% to test its performance. This is a
-common approach in machine learning to avoid overfitting.
+common approach in machine learning to avoid over-fitting and test model
+efficiency.
 
 ``` r
 # Set seed for reproducibility
@@ -130,9 +120,9 @@ test_data <- epl_data[-train_row_numbers, ]
 
 ## Step 4: Train a Model using an algorithm (we use Random Forest)
 
-In this step, we split the dataset into two parts. We use 80% of the
-data to train our model and 20% to test its performance. This is a
-common approach in machine learning to avoid overfitting.
+While many algorithms are available, we will use Random Forest for its
+simplicity and ability to highlight variable importance. This will allow
+us to compare which betting odds have the strongest explanatory power.
 
 ``` r
 # Set seed for reproducibility
@@ -140,6 +130,8 @@ set.seed(100)
 
 # Train the model using Random Forest
 model_rf <- train(FTR ~ ., data = train_data, method = 'rf')
+
+# display model
 model_rf
 ```
 
@@ -170,13 +162,14 @@ varimp_rf <- varImp(model_rf)
 plot(varimp_rf, main = "Horserace of Betting Odds")
 ```
 
-![](Title_files/figure-gfm/Variable%20imp-1.png)<!-- -->
+![](index_files/figure-gfm/Variable%20imp-1.png)<!-- -->
 
 ## Step 5: Make Predictions and Evaluate the Model
 
-Now, we test the model using the test dataset and predict the Full-Time
-Result (FTR). I use a confusion matrix to evaluate the model’s
-performance, which tells us how well the model classifies each outcome.
+Now, we test the model on the test dataset and predict the Full-Time
+Result (FTR). To evaluate the model’s performance, we use a confusion
+matrix, which provides insight into how accurately the model classifies
+each outcome.
 
 ``` r
 # Make predictions on the test set
@@ -221,15 +214,12 @@ confusion_matrix
     ## Detection Prevalence   0.2538   0.1377   0.6085
     ## Balanced Accuracy      0.6090   0.5164   0.6192
 
-## Step 5: Conclusion
+## Conclusion
 
-The focus of this tutorial is to demonstrate how to implement a
-classification model using numerical data. The model can be further
-optimized by incorporating additional factors (such as team performance,
-year effects, etc.), but for now, the goal is to show you the process so
-you can apply it to your own context.
-
-For example, in accounting research, this method can be adapted to
-classify the tone of narratives in financial disclosures or categorize
-different reporting themes. We are not aiming for high accuracy here but
-rather to provide a basic example for learning and experimentation.
+This tutorial provide a simple context to implement machine learning
+classification using numerical predictors. The focus of this tutorial is
+not on accuracy but rather on providing a basic example with code for
+learning and experimentation. The model can be further optimized by
+incorporating additional factors (such as team performance, year
+effects, etc.) and can be adopted to one’s own research
+contexts/settings.
